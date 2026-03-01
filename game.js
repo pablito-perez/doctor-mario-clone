@@ -3,7 +3,7 @@ kaboom({
     global: true,
     fullscreen: true,
     scale: 1,
-    clearColor: [0.9, 0.9, 0.9, 1],
+    clearColor: [0.1, 0.1, 0.3, 1],
 });
 
 // Game constants
@@ -84,65 +84,76 @@ let currPill = spawnPill();
 
 // Draw the game
 scene("main", () => {
-    // UI
-    add([
-        text(`Score: ${score}`),
-        pos(10, 10),
-        { value: score },
-    ]);
+    // Wait for all assets to load
+    onLoad(() => {
+        // UI
+        add([
+            text(`Score: ${score}`),
+            pos(10, 10),
+            { value: score },
+        ]);
 
-    add([
-        text(`Level: ${level}`),
-        pos(width() - 100, 10),
-        { value: level },
-    ]);
+        add([
+            text(`Level: ${level}`),
+            pos(width() - 100, 10),
+            { value: level },
+        ]);
 
-    // Draw grid background
-    for (let y = 0; y < GRID_HEIGHT; y++) {
-        for (let x = 0; x < GRID_WIDTH; x++) {
-            add([
-                rect(CELL_SIZE, CELL_SIZE),
-                pos(x * CELL_SIZE, y * CELL_SIZE + 60),
-                outline(1),
-                color(240, 240, 240),
-            ]);
-        }
-    }
-
-    // Draw viruses and pills in the grid
-    for (let y = 0; y < GRID_HEIGHT; y++) {
-        for (let x = 0; x < GRID_WIDTH; x++) {
-            if (grid[y][x]) {
+        // Draw grid background
+        for (let y = 0; y < GRID_HEIGHT; y++) {
+            for (let x = 0; x < GRID_WIDTH; x++) {
                 add([
-                    sprite(grid[y][x].type, { anim: grid[y][x].color }),
+                    rect(CELL_SIZE, CELL_SIZE),
                     pos(x * CELL_SIZE, y * CELL_SIZE + 60),
+                    outline(1),
+                    color(240, 240, 240),
                 ]);
             }
         }
-    }
 
-    // Draw current pill
-    for (const part of currPill.parts) {
-        add([
-            sprite("pill-half", { anim: part.color }),
-            pos(
-                (currPill.pos.x + part.offset.x) * CELL_SIZE,
-                (currPill.pos.y + part.offset.y) * CELL_SIZE + 60
-            ),
-        ]);
-    }
+        // Draw viruses and pills in the grid
+        for (let y = 0; y < GRID_HEIGHT; y++) {
+            for (let x = 0; x < GRID_WIDTH; x++) {
+                if (grid[y][x]) {
+                    try {
+                        add([
+                            sprite(grid[y][x].type, { anim: grid[y][x].color }),
+                            pos(x * CELL_SIZE, y * CELL_SIZE + 60),
+                        ]);
+                    } catch (e) {
+                        console.error("Failed to draw sprite:", e);
+                    }
+                }
+            }
+        }
 
-    // Touch controls
-    onKeyPress("left", () => movePill(-1, 0));
-    onKeyPress("right", () => movePill(1, 0));
-    onKeyPress("down", () => movePill(0, 1));
-    onKeyPress("space", () => rotatePill());
+        // Draw current pill
+        for (const part of currPill.parts) {
+            try {
+                add([
+                    sprite("pill-half", { anim: part.color }),
+                    pos(
+                        (currPill.pos.x + part.offset.x) * CELL_SIZE,
+                        (currPill.pos.y + part.offset.y) * CELL_SIZE + 60
+                    ),
+                ]);
+            } catch (e) {
+                console.error("Failed to draw pill:", e);
+            }
+        }
 
-    // Mobile touch controls
-    onClick("left", () => movePill(-1, 0));
-    onClick("right", () => movePill(1, 0));
-    onClick("down", () => movePill(0, 1));
-    onClick("rotate", () => rotatePill());
+        // Touch controls
+        onKeyPress("left", () => movePill(-1, 0));
+        onKeyPress("right", () => movePill(1, 0));
+        onKeyPress("down", () => movePill(0, 1));
+        onKeyPress("space", () => rotatePill());
+
+        // Mobile touch controls
+        onClick("left", () => movePill(-1, 0));
+        onClick("right", () => movePill(1, 0));
+        onClick("down", () => movePill(0, 1));
+        onClick("rotate", () => rotatePill());
+    });
 });
 
 // Move pill
